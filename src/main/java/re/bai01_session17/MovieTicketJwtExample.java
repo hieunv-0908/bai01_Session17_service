@@ -1,9 +1,8 @@
 package re.bai01_session17;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.Map;
 public class MovieTicketJwtExample {
 
     public static void main(String[] args) {
-        Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        SecretKey key = Keys.hmacShaKeyFor("this-is-a-secret-key-of-at-least-32-characters-long-for-hs256-algorithmthis".getBytes());
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", 123L);
@@ -21,25 +20,25 @@ public class MovieTicketJwtExample {
         Date expiration = new Date(now.getTime() + 3600 * 1000);
 
         String jwtToken = Jwts.builder()
-                .setClaims(claims)
-                .setSubject("user@movieticket.com")
-                .setIssuedAt(now)
-                .setExpiration(expiration)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject("user@movieticket.com")
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(key)
                 .compact();
 
         System.out.println("Generated JWT: " + jwtToken);
 
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(jwtToken);
+                    .parseSignedClaims(jwtToken);
             System.out.println("JWT is valid and verified!");
 
-            String subject = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken).getBody().getSubject();
-            Long userId = (Long) Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken).getBody().get("userId");
-            String roles = (String) Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken).getBody().get("roles");
+            String subject = Jwts.parser().verifyWith(key).build().parseSignedClaims(jwtToken).getPayload().getSubject();
+            Long userId = (Long) Jwts.parser().verifyWith(key).build().parseSignedClaims(jwtToken).getPayload().get("userId");
+            String roles = (String) Jwts.parser().verifyWith(key).build().parseSignedClaims(jwtToken).getPayload().get("roles");
 
             System.out.println("Subject: " + subject);
             System.out.println("User ID: " + userId);

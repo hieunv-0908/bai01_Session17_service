@@ -1,0 +1,7 @@
+Trong code gốc, JWT được ký với một key, nhưng được xác minh với một differentKey hoàn toàn khác:
+Tạo token với key
+Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+String jwtToken = Jwts.builder()...signWith(key, SignatureAlgorithm.HS256).compact();
+
+Xác minh với key KHÁC
+Key differentKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);  // Key mới, khác ho
